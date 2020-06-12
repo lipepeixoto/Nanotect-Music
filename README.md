@@ -1,7 +1,7 @@
 ![logo](https://repository-images.githubusercontent.com/186841818/8aa95700-7730-11e9-84be-e80f28520325)
 
-# EvoBot (Discord Music Bot)
-> EvoBot is a Discord Music Bot built with discord.js & uses Command Handler from [discordjs.guide](https://discordjs.guide)
+# EvoBot-TH (Discord Music Bot)
+> EvoBot-TH is a Discord Music Bot built with discord.js & uses Command Handler from [discordjs.guide](https://discordjs.guide)
 
 ## Requirements
 
@@ -75,4 +75,4 @@ Copy or Rename `config.json.example` to `config.json` and fill out the values:
 
 ## Credits
 
-[@iCrawl](https://github.com/iCrawl) For the queue system used in this application which was adapted from [@iCrawl/discord-music-bot](https://github.com/iCrawl/discord-music-bot)
+[@Synyanize](https://github.com/Synyanize) For the queue system used in this application which was adapted from [@Synyanize/discord-music-bot](https://github.com/Synyanize/evobot-th)
