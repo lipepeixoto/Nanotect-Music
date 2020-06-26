@@ -62,6 +62,8 @@ Copy or Rename `config.json.example` to `config.json` and fill out the values:
 * Toggle pruning of bot messages (#pruning)
 * Help (#help, #h)
 * Media Controls via Reactions
+
+
 ![reactions](https://i.imgur.com/xKy6y0k.png)
 
 ## Credits
