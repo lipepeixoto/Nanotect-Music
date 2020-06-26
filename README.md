@@ -7,7 +7,7 @@
 
 1. Discord Bot Token **[Guide](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot)**
 2. YouTube Data API v3 Key **[Guide](https://developers.google.com/youtube/v3/getting-started)**
-  2.1 (Optional) Soundcloud Client ID **[Guild](https://github.com/zackradisic/node-soundcloud-downloader#client-id)**
+2.1 (Optional) Soundcloud Client ID **[Guild](https://github.com/zackradisic/node-soundcloud-downloader#client-id)**
 3. Node.js v12.0.0 or newer
 
 ## Installation
@@ -26,11 +26,11 @@ Copy or Rename `config.json.example` to `config.json` and fill out the values:
 
 ```json
 {
-	"TOKEN": "TOKEN_HERE",
-	"YOUTUBE_API_KEY": "YTAPI_HERE",
-	"SOUNDCLOUD_CLIENT_ID": "SOUNDCLOUD_ID_HERE",
-	"MAX_PLAYLIST_SIZE": 100,
-	"PREFIX": "#",
+  "TOKEN": "TOKEN_HERE",
+  "YOUTUBE_API_KEY": "YTAPI_HERE",
+  "SOUNDCLOUD_CLIENT_ID": "SOUNDCLOUD_ID_HERE",
+  "MAX_PLAYLIST_SIZE": 100,
+  "PREFIX": "#",
   "PRUNING": false
 }
 ```
