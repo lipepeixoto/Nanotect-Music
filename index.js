@@ -12,20 +12,17 @@ client.login(TOKEN);
 client.commands = new Collection();
 client.prefix = PREFIX;
 client.queue = new Map();
+const cooldowns = new Collection();
 
 /**
  * Client Events
  */
 client.on("ready", () => {
   console.log(`${client.user.username} ready!`);
-setInterval(function () {
-    let activityTypes = ['PLAYING','STREAMING','LISTENING','WATCHING'];
-    let randomType = activityTypes[Math.floor((Math.random()*activityTypes.length))];
-    client.user.setActivity('Using Command! #play | #help', {
-       type: randomType,
-       url: 'https://www.twitch.tv/synyanize'
-     });
- }, 30000);
+  client.user.setActivity('💕 Using Commannd! #help | #play', {
+    type: 'STREAMING',
+    url: 'https://www.twitch.tv/synyanize'
+  });
 });
 client.on("warn", (info) => console.log(info));
 client.on("error", console.error);
@@ -53,11 +50,33 @@ client.on("message", async (message) => {
 
     if (!command) return;
 
+    if (!cooldowns.has(command.name)) {
+      cooldowns.set(command.name, new Collection());
+    }
+
+    const now = Date.now();
+    const timestamps = cooldowns.get(command.name);
+    const cooldownAmount = (command.cooldown || 1) * 1000;
+
+    if (timestamps.has(message.author.id)) {
+      const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+
+      if (now < expirationTime) {
+        const timeLeft = (expirationTime - now) / 1000;
+        return message.reply(
+          `🚦 **โปรดรอ** ${timeLeft.toFixed(1)} **วินาที** 🕐 **เพื่อใช้คำสั่ง** \`${command.name}\` **ต่อไป**`
+        );
+      }
+    }
+
+    timestamps.set(message.author.id, now);
+    setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
     try {
       command.execute(message, args);
     } catch (error) {
       console.error(error);
-      message.reply("📛 ***➽***  ไม่มีคำสั่งนี้").catch(console.error);
+      message.reply("📛 ***➽***  **คำสั่งนี้ไม่พร้อมใช้งาน**").catch(console.error);
     }
   }
 });

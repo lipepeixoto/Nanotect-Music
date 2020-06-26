@@ -6,15 +6,20 @@ const youtube = new YouTubeAPI(YOUTUBE_API_KEY);
 
 module.exports = {
   name: "playlist",
+  cooldown: 3,
   aliases: ["pl"],
   description: "🛎 เล่นเพลย์ลิสต์จากยูทูป",
   async execute(message, args) {
     const { PRUNING } = require("../config.json");
     const { channel } = message.member.voice;
 
+    const serverQueue = message.client.queue.get(message.guild.id);
+    if (serverQueue && channel !== message.guild.me.voice.channel)
+      return message.reply(`💥 **คุณต้องไปอยู่ห้องเดียวกันกับบอท**  ${message.client.user}`).catch(console.error);
+
     if (!args.length)
       return message
-        .reply(`**วิธีใช้** ***➽***  **${message.client.prefix}playlist <ลิ้งเพลงเพลย์ลิสต์ | ชื่อเพลงเพลย์ลิสต์>**`)
+        .reply(`**วิธีใช้** ***➽***  **${message.client.prefix}playlist <ลิ้งเพลย์ลิสต์ | ชื่อเพลย์ลิสต์>**`)
         .catch(console.error);
     if (!channel) return message.reply("📛 ***➽***  **คุณต้องเข้าห้องพูดคุยก่อน**").catch(console.error);
 
@@ -29,7 +34,6 @@ module.exports = {
     const url = args[0];
     const urlValid = pattern.test(args[0]);
 
-    const serverQueue = message.client.queue.get(message.guild.id);
     const queueConstruct = {
       textChannel: message.channel,
       channel,
@@ -50,6 +54,7 @@ module.exports = {
         videos = await playlist.getVideos(MAX_PLAYLIST_SIZE || 10, { part: "snippet" });
       } catch (error) {
         console.error(error);
+        return message.reply("📛 ***➽***  **ไม่เจอเพลย์ลิสต์ที่ค้นหา**").catch(console.error);
       }
     } else {
       try {
@@ -58,6 +63,7 @@ module.exports = {
         videos = await playlist.getVideos(MAX_PLAYLIST_SIZE || 10, { part: "snippet" });
       } catch (error) {
         console.error(error);
+        return message.reply("📛 ***➽***  **ไม่เจอเพลย์ลิสต์ที่ค้นหา**").catch(console.error);
       }
     }
 
@@ -72,7 +78,7 @@ module.exports = {
         serverQueue.songs.push(song);
         if (!PRUNING)
           message.channel
-            .send(`✅ ***➽***  **${song.title}** **ถูกเพิ่มเข้าไปในคิว** ${message.author}`)
+            .send(`✅ ***➽***  **${song.title}** ถูกเพิ่มเข้าไปในคิวโดย ***➽***  ${message.author}`)
             .catch(console.error);
       } else {
         queueConstruct.songs.push(song);
@@ -82,7 +88,8 @@ module.exports = {
     let playlistEmbed = new MessageEmbed()
       .setTitle(`${playlist.title}`)
       .setURL(playlist.url)
-      .setColor("#F8AA2A")
+      .setColor("RANDOM")
+      .setFooter("2020 ©️ Developer Adivise.", "https://i.imgur.com/0nTWDMk.png")
       .setTimestamp();
 
     if (!PRUNING) {
@@ -92,7 +99,7 @@ module.exports = {
           playlistEmbed.description.substr(0, 2007) + "\n📛 ***➽***  **เพลย์ลิสต์ยาวเกินไป...**";
     }
 
-    message.channel.send(`${message.author} **กำลังเล่นเพลย์ลิสต์**`, playlistEmbed);
+    message.channel.send(`${message.author} **กำลังรอ.. เล่นเพลย์ลิสต์**`, playlistEmbed);
 
     if (!serverQueue) message.client.queue.set(message.guild.id, queueConstruct);
 

@@ -4,16 +4,13 @@ module.exports = {
   name: "shuffle",
   description: "🛎 สุ่มเพลงในคิว",
   execute(message) {
-    if (!canModifyQueue(message.member)) return;
-
     const queue = message.client.queue.get(message.guild.id);
-
-    if (!queue)
-      return message.channel.send("🚫 ***➽***  **ไม่มีเพลงในเพลย์ลิสต์**").catch(console.error);
+    if (!queue) return message.channel.send("🚫 ***➽***  **ไม่มีเพลงในเพลย์ลิสต์**").catch(console.error);
+    if (!canModifyQueue(message.member)) return;
 
     let songs = queue.songs;
     for (let i = songs.length - 1; i > 1; i--) {
-      let j = 1 + Math.floor(Math.random() * (i));
+      let j = 1 + Math.floor(Math.random() * i);
       [songs[i], songs[j]] = [songs[j], songs[i]];
     }
     queue.songs = songs;

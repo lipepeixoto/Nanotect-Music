@@ -1,4 +1,4 @@
-const { MessageEmbed } = require("discord.js");
+﻿const { MessageEmbed } = require("discord.js");
 
 module.exports = {
   name: "help",
@@ -8,8 +8,9 @@ module.exports = {
     let commands = message.client.commands.array();
 
     let helpEmbed = new MessageEmbed()
-      .setTitle("🔔 Adivise. Music Help 🔔")
+      .setTitle("🔔 Music Help 🔔")
       .setDescription("🛎 คำสั่งเพลงทั่งหมด")
+	  .setFooter("2020 ©️ Developer Adivise.", "https://i.imgur.com/0nTWDMk.png")
       .setColor("RANDOM");
 
     commands.forEach((cmd) => {

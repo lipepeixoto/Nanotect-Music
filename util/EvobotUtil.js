@@ -1,4 +1,4 @@
-module.exports = {
+﻿module.exports = {
   canModifyQueue(member) {
     const { channel } = member.voice;
     const botChannel = member.guild.me.voice.channel;

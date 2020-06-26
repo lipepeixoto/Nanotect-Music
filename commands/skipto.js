@@ -3,17 +3,17 @@ const { canModifyQueue } = require("../util/EvobotUtil");
 module.exports = {
   name: "skipto",
   aliases: ["st"],
-  description: "🛎 ข้ามเพลงเลขในคิว",
+  description: "🛎 ข้ามเพลงในคิว",
   execute(message, args) {
-    if (!canModifyQueue(message.member)) return;
-    
-    if (!args.length) return message.reply(`**วิธีใช้** ***➽***  ${message.client.prefix}${name} **<เลขในคิว>**`);
+    if (!args.length) return message.reply(`**วิธีใช้** ***➽***  **${message.client.prefix}${name} <เลขในคิว>**`);
 
     const queue = message.client.queue.get(message.guild.id);
-    if (!queue) return message.channel.send("🚫 ***➽***  **ไม่มีคิว**").catch(console.error);
+    if (!queue) return message.channel.send("🚫 ***➽***  **ไม่มีเพลงในคิว**").catch(console.error);
+    if (!canModifyQueue(message.member)) return;
 
+    queue.playing = true;
     queue.songs = queue.songs.slice(args[0] - 2);
     queue.connection.dispatcher.end();
-    queue.textChannel.send(`${message.author} ⏭ ***➽***  **ข้ามไปเพลง ${args[0] - 1}**`).catch(console.error);
+    queue.textChannel.send(`${message.author} ⏭ ***➽***  **ข้ามไปเพลงที่ ${args[0] - 1}**`).catch(console.error);
   }
 };

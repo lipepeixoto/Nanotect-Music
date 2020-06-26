@@ -1,9 +1,10 @@
 const ytdlDiscord = require("ytdl-core-discord");
+const scdl = require("soundcloud-downloader");
 const { canModifyQueue } = require("../util/EvobotUtil");
 
 module.exports = {
   async play(song, message) {
-    const { PRUNING } = require("../config.json");
+    const { PRUNING, SOUNDCLOUD_CLIENT_ID } = require("../config.json");
     const queue = message.client.queue.get(message.guild.id);
 
     if (!song) {
@@ -12,32 +13,33 @@ module.exports = {
       return queue.textChannel.send("🚫 ***➽***  **เพลงเล่นจบแล้ว**").catch(console.error);
     }
 
+    let stream = null;
+
     try {
-      var stream = await ytdlDiscord(song.url, { highWaterMark: 1 << 25 });
+      if (song.url.includes("youtube.com")) {
+        stream = await ytdlDiscord(song.url, { highWaterMark: 1 << 25 });
+      } else if (song.url.includes("soundcloud.com") && SOUNDCLOUD_CLIENT_ID) {
+        const info = await scdl.getInfo(song.url, SOUNDCLOUD_CLIENT_ID);
+        const opus = scdl.filterMedia(info.media.transcodings, { format: scdl.FORMATS.OPUS });
+        stream = await scdl.downloadFromURL(opus[0].url, SOUNDCLOUD_CLIENT_ID);
+      }
     } catch (error) {
       if (queue) {
         queue.songs.shift();
         module.exports.play(queue.songs[0], message);
       }
 
-      if (error.message.includes("copyright")) {
-        return message.channel
-          .send("⛔ ***➽***  **เพลงนี้โดนยกเลิก เพราะติดลิขสิทธิ์**")
-          .catch(console.error);
-      } else {
-        console.error(error);
-      }
+      console.error(error);
+      return message.channel.send(`Error: ${error.message ? error.message : error}`);
     }
 
     queue.connection.on("disconnect", () => message.client.queue.delete(message.guild.id));
 
+    const type = song.url.includes("youtube.com") ? "opus" : "ogg/opus";
     const dispatcher = queue.connection
-      .play(stream, { type: "opus" })
+      .play(stream, { type: type })
       .on("finish", () => {
         if (collector && !collector.ended) collector.stop();
-
-        if (PRUNING && playingMessage && !playingMessage.deleted)
-          playingMessage.delete().catch(console.error);
 
         if (queue.loop) {
           // if loop is on, push the song back at the end of the queue
@@ -74,14 +76,14 @@ module.exports = {
     });
 
     collector.on("collect", (reaction, user) => {
-      // Stop if there is no queue on the server
       if (!queue) return;
       const member = message.guild.member(user);
 
       switch (reaction.emoji.name) {
         case "⏭":
+          queue.playing = true;
           reaction.users.remove(user).catch(console.error);
-          if (!canModifyQueue(member)) return
+          if (!canModifyQueue(member)) return;
           queue.connection.dispatcher.end();
           queue.textChannel.send(`${user} ⏩ ***➽***  **ข้ามเพลงเรียบร้อย**`).catch(console.error);
           collector.stop();
@@ -89,10 +91,10 @@ module.exports = {
 
         case "⏯":
           reaction.users.remove(user).catch(console.error);
-          if (!canModifyQueue(member)) return
+          if (!canModifyQueue(member)) return;
           if (queue.playing) {
             queue.playing = !queue.playing;
-            queue.connection.dispatcher.pause();
+            queue.connection.dispatcher.pause(true);
             queue.textChannel.send(`${user} ⏸ ***➽***  **หยุดเพลงเรียบร้อย**`).catch(console.error);
           } else {
             queue.playing = !queue.playing;
@@ -103,14 +105,14 @@ module.exports = {
 
         case "🔁":
           reaction.users.remove(user).catch(console.error);
-          if (!canModifyQueue(member)) return
+          if (!canModifyQueue(member)) return;
           queue.loop = !queue.loop;
           queue.textChannel.send(`🔁 เล่นเพลงซ้ำ ***➽***  ${queue.loop ? "**เปิด**" : "**ปิด**"}`).catch(console.error);
           break;
 
         case "⏹":
           reaction.users.remove(user).catch(console.error);
-          if (!canModifyQueue(member)) return
+          if (!canModifyQueue(member)) return;
           queue.songs = [];
           queue.textChannel.send(`${user} ⏹ ***➽***  **ปิดเพลงเรียบร้อย**`).catch(console.error);
           try {
@@ -130,6 +132,9 @@ module.exports = {
 
     collector.on("end", () => {
       playingMessage.reactions.removeAll().catch(console.error);
+      if (PRUNING && playingMessage && !playingMessage.deleted) {
+        playingMessage.delete({ timeout: 3000 }).catch(console.error);
+      }
     });
   }
-};
+}
