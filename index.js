@@ -19,13 +19,11 @@ const cooldowns = new Collection();
  */
 client.on("ready", () => {
   console.log(`${client.user.username} ready!`);
-  client.user.setActivity('Using Command! ${PREFIX}help | ${PREFIX}play', {
+  client.user.setActivity(`Using Command! ${PREFIX}help | ${PREFIX}play`, {
     type: 'STREAMING',
-    url: 'https://www.twitch.tv/synyanize'
+    url: 'https://www.twitch.tv/adivise'
   });
 });
-client.on("warn", (info) => console.log(info));
-client.on("error", console.error);
 
 /**
  * Import all commands
