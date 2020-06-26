@@ -64,4 +64,4 @@ Copy or Rename `config.json.example` to `config.json` and fill out the values:
 
 ## Credits
 
-[@Synyanize](https://github.com/Synyanize) For the queue system used in this application which was adapted from [@Synyanize/discord-music-bot](https://github.com/Synyanize/evobot-th)
+[@Adivise](https://github.com/Adivise) For the queue system used in this application which was adapted from [@Synyanize/Adivise-Music](https://github.com/Synyanize/Adivise-Music)
