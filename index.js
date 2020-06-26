@@ -19,7 +19,7 @@ const cooldowns = new Collection();
  */
 client.on("ready", () => {
   console.log(`${client.user.username} ready!`);
-  client.user.setActivity('💕 Using Commannd! #help | #play', {
+  client.user.setActivity('Using Command! ${PREFIX}help | ${PREFIX}play', {
     type: 'STREAMING',
     url: 'https://www.twitch.tv/synyanize'
   });
