@@ -1,18 +1,25 @@
-﻿const { canModifyQueue } = require("../util/MusicUtil");
+const { canModifyQueue } = require("../util/MusicUtil");
+const { MessageEmbed } = require("discord.js");
 
 module.exports = {
   name: "loop",
   aliases: ['l'],
-  description: "🛎 เปิด : ปิด เล่นเพลงซ้ำ",
+  description: "Toggle music loop",
   execute(message) {
     const queue = message.client.queue.get(message.guild.id);
-    if (!queue) return message.reply("🚫 ***➽***  **ไม่มีเพลงเล่นอยู่ตอนนี้**").catch(console.error);
+    if (!queue) return message.reply("There is nothing playing.");
     if (!canModifyQueue(message.member)) return;
 
-    // toggle from false to true and reverse
     queue.loop = !queue.loop;
-    return queue.textChannel
-      .send(`🔁 เล่นเพลงซ้ำ ***➽***  ${queue.loop ? "**เปิด**" : "**ปิด**"}`)
-      .catch(console.error);
+
+    let loopEmbed = new MessageEmbed()
+
+      .setAuthor("🔄 Looped music...")
+      .setDescription(`**❯ Loop is now:** ${queue.loop ? "✅" : "❎"}`)
+      .setColor("RANDOM")
+      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp();
+
+    return queue.textChannel.send(loopEmbed);
   }
 };

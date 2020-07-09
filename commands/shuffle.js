@@ -1,11 +1,12 @@
 const { canModifyQueue } = require("../util/MusicUtil");
+const { MessageEmbed } = require("discord.js");
 
 module.exports = {
   name: "shuffle",
-  description: "🛎 สุ่มเพลงในคิว",
+  description: "Shuffle queue",
   execute(message) {
     const queue = message.client.queue.get(message.guild.id);
-    if (!queue) return message.channel.send("🚫 ***➽***  **ไม่มีเพลงในเพลย์ลิสต์**").catch(console.error);
+    if (!queue) return message.channel.send("There is no queue.").catch(console.error);
     if (!canModifyQueue(message.member)) return;
 
     let songs = queue.songs;
@@ -15,6 +16,15 @@ module.exports = {
     }
     queue.songs = songs;
     message.client.queue.set(message.guild.id, queue);
-    queue.textChannel.send(`${message.author} 🔀 ***➽***  **สุ่มเพลงในคิว**`).catch(console.error);
+
+    let shuffleEmbed = new MessageEmbed()
+
+    .setAuthor("🔀 Shuffle music...")
+    .setDescription(`**❯ Requested By:** ${message.author}`)
+    .setColor("RANDOM")
+    .setFooter("Creator: Nanotect.", "https://i.imgur.com/40JSoww.png")
+    .setTimestamp();
+
+    queue.textChannel.send(shuffleEmbed);
   }
 };

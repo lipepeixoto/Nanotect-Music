@@ -1,17 +1,27 @@
 const { canModifyQueue } = require("../util/MusicUtil");
+const { MessageEmbed } = require("discord.js");
 
 module.exports = {
   name: "remove",
-  description: "🛎 ลบเพลงออกจากคิว",
+  description: "Remove song from the queue",
   execute(message, args) {
     const queue = message.client.queue.get(message.guild.id);
-    if (!queue) return message.channel.send("📛 ***➽***  **ไม่มีเพลงในคิว**").catch(console.error);
+    if (!queue) return message.channel.send("There is no queue.").catch(console.error);
     if (!canModifyQueue(message.member)) return;
     
-    if (!args.length) return message.reply(`**วิธีใช้** ***➽***  **${message.client.prefix}remove <เลขในคิว>**`);
-    if (isNaN(args[0])) return message.reply(`**วิธีใช้** ***➽***  **${message.client.prefix}remove <เลขในคิว>**`);
+    if (!args.length) return message.reply(`Usage: ${message.client.prefix}remove <Queue Number>`);
+    if (isNaN(args[0])) return message.reply(`Usage: ${message.client.prefix}remove <Queue Number>`);
 
     const song = queue.songs.splice(args[0] - 1, 1);
-    queue.textChannel.send(`${message.author} ❌ ***➽***  **ได้ลบเพลง** **${song[0].title}** **ออกจากคิว**`);
+
+    let removeEmbed = new MessageEmbed()
+
+      .setAuthor("🎵 Removed music...")
+      .setDescription(`${song[0].title}`)
+      .setColor("RANDOM")
+      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp();
+
+    queue.textChannel.send(removeEmbed);
   }
 };

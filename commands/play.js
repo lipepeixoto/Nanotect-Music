@@ -9,25 +9,24 @@ module.exports = {
   name: "play",
   cooldown: 3,
   aliases: ["p"],
-  description: "🛎 เล่นเพลงจากยูทูป หรือ ซาวคาว",
+  description: "Plays audio from YouTube or Soundcloud",
   async execute(message, args) {
     const { channel } = message.member.voice;
 
     const serverQueue = message.client.queue.get(message.guild.id);
-    if (!channel) return message.reply("You need to join a voice channel first!").catch(console.error);
+    if (!channel) return message.reply("You need to join a voice channel first!");
     if (serverQueue && channel !== message.guild.me.voice.channel)
-      return message.reply(`💥 **คุณต้องไปอยู่ห้องเดียวกันกับบอท** ${message.client.user}`).catch(console.error);
+      return message.reply(`You must be in the same channel as ${message.client.user}`);
 
     if (!args.length)
       return message
-        .reply(`**วิธีใช้** ***➽***  **${message.client.prefix}play <ลิ้งเพลง | ชื่อเพลง | ลิ้งซาวคาว>**`)
-        .catch(console.error);
+        .reply(`Usage: ${message.client.prefix}play <YouTube URL | Video Name | Soundcloud URL>`);
 
     const permissions = channel.permissionsFor(message.client.user);
     if (!permissions.has("CONNECT"))
-      return message.reply("📛 ***➽***  **ไม่สามารถเข้าห้องพูดคุย ต้องการยศที่เข้าห้องได้**");
+      return message.reply("Cannot connect to voice channel, missing permissions");
     if (!permissions.has("SPEAK"))
-      return message.reply("📛 ***➽***  **ไม่สามารถพูดคุยได้ ต้องการยศที่พูดคุยได้**");
+      return message.reply("I cannot speak in this voice channel, make sure I have the proper permissions!");
 
     const search = args.join(" ");
     const videoPattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/gi;
@@ -69,7 +68,7 @@ module.exports = {
     } else if (scRegex.test(url)) {
       // It is a valid Soundcloud URL
       if (!SOUNDCLOUD_CLIENT_ID)
-        return message.reply("📛 ***➽**  **คุณต้อง ใส่ SoundCloud ID ใน Config ก่อนถึงคุณจะสามารถใช้ได้**").catch(console.error);
+        return message.reply("Missing Soundcloud Client ID in config").catch(console.error);
       try {
         const trackInfo = await scdl.getInfo(url, SOUNDCLOUD_CLIENT_ID);
         song = {
@@ -78,8 +77,8 @@ module.exports = {
         };
       } catch (error) {
         if (error.statusCode === 404)
-          return message.reply("📛 ***➽**  **ค้นหาเพลงในซาวคาวไม่เจอ**").catch(console.error);
-        return message.reply("📛 ***➽**  **เกิดข้อผิดพลาดในการเล่นเพลงในซาวคาว**").catch(console.error);
+          return message.reply("Could not find that Soundcloud track.").catch(console.error);
+        return message.reply("There was an error playing that Soundcloud track.").catch(console.error);
       }
     } else {
       try {
@@ -92,15 +91,14 @@ module.exports = {
         };
       } catch (error) {
         console.error(error);
-        return message.reply("⛔ ***➽***  **ไม่เจอเพลงที่ค้นหา**").catch(console.error);
+        return message.reply("No video was found with a matching title");
       }
     }
 
     if (serverQueue) {
       serverQueue.songs.push(song);
       return serverQueue.textChannel
-        .send(`✅ ***➽***  **${song.title}** ถูกเพิ่มเข้าไปในคิวโดย ***➽***  ${message.author}`)
-        .catch(console.error);
+        .send(`✅ **${song.title}** has been added to the queue by ${message.author}`);
     }
 
     queueConstruct.songs.push(song);
@@ -108,12 +106,13 @@ module.exports = {
 
     try {
       queueConstruct.connection = await channel.join();
+      await queueConstruct.connection.voice.setSelfDeaf(true);
       play(queueConstruct.songs[0], message);
     } catch (error) {
-      console.error(`⛔ ***➽***  ไม่สามารถเข้าห้องพูดคุยได้ ***➽***  ${error}`);
+      console.error(error);
       message.client.queue.delete(message.guild.id);
       await channel.leave();
-      return message.channel.send(`⛔ ***➽***  ไม่สามารถเข้าห้องได้ ***➽***  ${error}`).catch(console.error);
+      return message.channel.send(`Could not join the channel: ${error}`).catch(console.error);
     }
   }
 };

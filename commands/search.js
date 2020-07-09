@@ -1,26 +1,28 @@
-﻿const { MessageEmbed } = require("discord.js");
+const { MessageEmbed } = require("discord.js");
 const { YOUTUBE_API_KEY } = require("../config.json");
 const YouTubeAPI = require("simple-youtube-api");
 const youtube = new YouTubeAPI(YOUTUBE_API_KEY);
 
 module.exports = {
   name: "search",
-  description: "🛎 ค้นหาเพลงในยูทูป",
+  description: "Search and select videos to play",
   async execute(message, args) {
     if (!args.length)
-      return message.reply(`**วิธีใช้** ***➽***  **${message.client.prefix}${module.exports.name} <ชื่อเพลง>**`).catch(console.error);
+      return message.reply(`Usage: ${message.client.prefix}${module.exports.name} <Video Name>`).catch(console.error);
     if (message.channel.activeCollector)
-      return message.reply("🔔 ***➽***  **คำสั่งได้เริ่มไปแล้ว**");
+      return message.reply("A message collector is already active in this channel.");
     if (!message.member.voice.channel)
-      return message.reply("📛 ***➽***  **คุณต้องเข้าห้องพูดคุยก่อน**").catch(console.error);
+      return message.reply("You need to join a voice channel first!").catch(console.error);
 
     const search = args.join(" ");
 
     let resultsEmbed = new MessageEmbed()
-      .setTitle(`**ระบุเลขคิว เพลงที่ต้องการเล่น**`)
-      .setDescription(`เพลงทั่งหมด ***➽***  ${search}`)
-      .setFooter("2020 ©️ Developer Adivise.", "https://i.imgur.com/0nTWDMk.png")
-      .setColor("RANDOM");
+
+      .setAuthor("#️⃣ Select music...")
+      .setDescription(`**❯ Results for:** ${search}`)
+      .setColor("RANDOM")
+      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
+      .setTimestamp();
 
     try {
       const results = await youtube.searchVideos(search, 10);

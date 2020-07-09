@@ -8,26 +8,26 @@ module.exports = {
   name: "playlist",
   cooldown: 3,
   aliases: ["pl"],
-  description: "🛎 เล่นเพลย์ลิสต์จากยูทูป",
+  description: "Play a playlist from youtube",
   async execute(message, args) {
     const { PRUNING } = require("../config.json");
     const { channel } = message.member.voice;
 
     const serverQueue = message.client.queue.get(message.guild.id);
     if (serverQueue && channel !== message.guild.me.voice.channel)
-      return message.reply(`💥 **คุณต้องไปอยู่ห้องเดียวกันกับบอท**  ${message.client.user}`).catch(console.error);
+      return message.reply(`You must be in the same channel as ${message.client.user}`).catch(console.error);
 
     if (!args.length)
       return message
-        .reply(`**วิธีใช้** ***➽***  **${message.client.prefix}playlist <ลิ้งเพลย์ลิสต์ | ชื่อเพลย์ลิสต์>**`)
+        .reply(`Usage: ${message.client.prefix}playlist <YouTube Playlist URL | Playlist Name>`)
         .catch(console.error);
-    if (!channel) return message.reply("📛 ***➽***  **คุณต้องเข้าห้องพูดคุยก่อน**").catch(console.error);
+    if (!channel) return message.reply("You need to join a voice channel first!").catch(console.error);
 
     const permissions = channel.permissionsFor(message.client.user);
     if (!permissions.has("CONNECT"))
-      return message.reply("📛 ***➽***  **ไม่สามารถเข้าห้องพูดคุยต้องการยศที่เข้าห้องได้**");
+      return message.reply("Cannot connect to voice channel, missing permissions");
     if (!permissions.has("SPEAK"))
-      return message.reply("📛 ***➽***  **ไม่สามารถพูดคุยได้ ต้องการยศที่พูดคุยได้**");
+      return message.reply("I cannot speak in this voice channel, make sure I have the proper permissions!");
 
     const search = args.join(" ");
     const pattern = /^.*(youtu.be\/|list=)([^#\&\?]*).*/gi;
@@ -54,7 +54,7 @@ module.exports = {
         videos = await playlist.getVideos(MAX_PLAYLIST_SIZE || 10, { part: "snippet" });
       } catch (error) {
         console.error(error);
-        return message.reply("📛 ***➽***  **ไม่เจอเพลย์ลิสต์ที่ค้นหา**").catch(console.error);
+        return message.reply("Playlist not found :(").catch(console.error);
       }
     } else {
       try {
@@ -63,7 +63,7 @@ module.exports = {
         videos = await playlist.getVideos(MAX_PLAYLIST_SIZE || 10, { part: "snippet" });
       } catch (error) {
         console.error(error);
-        return message.reply("📛 ***➽***  **ไม่เจอเพลย์ลิสต์ที่ค้นหา**").catch(console.error);
+        return message.reply("Playlist not found :(").catch(console.error);
       }
     }
 
@@ -78,41 +78,42 @@ module.exports = {
         serverQueue.songs.push(song);
         if (!PRUNING)
           message.channel
-            .send(`✅ ***➽***  **${song.title}** ถูกเพิ่มเข้าไปในคิวโดย ***➽***  ${message.author}`)
-            .catch(console.error);
+            .send(`✅ **${song.title}** has been added to the queue by ${message.author}`);
       } else {
         queueConstruct.songs.push(song);
       }
     });
 
     let playlistEmbed = new MessageEmbed()
+
+      .setAuthor("🎶 Start playing...")
       .setTitle(`${playlist.title}`)
       .setURL(playlist.url)
       .setColor("RANDOM")
-      .setFooter("2020 ©️ Developer Adivise.", "https://i.imgur.com/0nTWDMk.png")
+      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp();
 
     if (!PRUNING) {
       playlistEmbed.setDescription(queueConstruct.songs.map((song, index) => `${index + 1}. ${song.title}`));
       if (playlistEmbed.description.length >= 2048)
         playlistEmbed.description =
-          playlistEmbed.description.substr(0, 2007) + "\n📛 ***➽***  **เพลย์ลิสต์ยาวเกินไป...**";
+          playlistEmbed.description.substr(0, 2007) + "\nPlaylist larger than character limit...";
     }
 
-    message.channel.send(`${message.author} **กำลังรอ.. เล่นเพลย์ลิสต์**`, playlistEmbed);
+    message.channel.send(playlistEmbed);
 
     if (!serverQueue) message.client.queue.set(message.guild.id, queueConstruct);
 
     if (!serverQueue) {
       try {
-        const connection = await channel.join();
-        queueConstruct.connection = connection;
+        queueConstruct.connection = await channel.join();
+        await queueConstruct.connection.voice.setSelfDeaf(true);
         play(queueConstruct.songs[0], message);
       } catch (error) {
-        console.error(`⛔ ***➽***  ไม่สามารถเข้าห้องพูดคุยได้ ***➽***  ${error}`);
+        console.error(error);
         message.client.queue.delete(message.guild.id);
         await channel.leave();
-        return message.channel.send(`⛔ ***➽***  ไม่สามารถเข้าห้องได้ ***➽***  ${error}`).catch(console.error);
+        return message.channel.send(`Could not join the channel: ${error}`).catch(console.error);
       }
     }
   }

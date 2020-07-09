@@ -1,6 +1,7 @@
 const ytdlDiscord = require("ytdl-core-discord");
 const scdl = require("soundcloud-downloader");
 const { canModifyQueue } = require("../util/MusicUtil");
+const { MessageEmbed } = require("discord.js");
 
 module.exports = {
   async play(song, message) {
@@ -10,7 +11,16 @@ module.exports = {
     if (!song) {
       queue.channel.leave();
       message.client.queue.delete(message.guild.id);
-      return queue.textChannel.send("🚫 ***➽***  **เพลงเล่นจบแล้ว**").catch(console.error);
+
+      let stoppedEmbed = new MessageEmbed()
+    
+      .setAuthor("🚨 Music has ending...")
+      .setDescription(`**❯ Requested By:** ${message.author}`)
+      .setColor("RANDOM")
+      .setFooter("Creator: Nanotect.", "https://i.imgur.com/40JSoww.png")
+      .setTimestamp();
+
+      return queue.textChannel.send(stoppedEmbed);
     }
 
     let stream = null;
@@ -42,8 +52,6 @@ module.exports = {
         if (collector && !collector.ended) collector.stop();
 
         if (queue.loop) {
-          // if loop is on, push the song back at the end of the queue
-          // so it can repeat endlessly
           let lastSong = queue.songs.shift();
           queue.songs.push(lastSong);
           module.exports.play(queue.songs[0], message);
@@ -60,8 +68,17 @@ module.exports = {
       });
     dispatcher.setVolumeLogarithmic(queue.volume / 100);
 
+    let playEmbed = new MessageEmbed()
+
+    .setAuthor("🎵 Start playing...")
+    .setTitle(`${song.title}`)
+    .setURL(song.url)
+    .setColor("RANDOM")
+    .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
+    .setTimestamp();
+
     try {
-      var playingMessage = await queue.textChannel.send(`🎶 **กำลังเล่นเพลง** ***➽***  **${song.title}**\n  🌐 **ลิ้งเพลง** ***➽***  ||${song.url}||`);
+      var playingMessage = await queue.textChannel.send(playEmbed);
       await playingMessage.react("⏭");
       await playingMessage.react("⏯");
       await playingMessage.react("🔁");
@@ -85,7 +102,7 @@ module.exports = {
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
           queue.connection.dispatcher.end();
-          queue.textChannel.send(`${user} ⏩ ***➽***  **ข้ามเพลงเรียบร้อย**`).catch(console.error);
+          queue.textChannel.send(`${user} ⏩ Skipped the song`);
           collector.stop();
           break;
 
@@ -95,11 +112,11 @@ module.exports = {
           if (queue.playing) {
             queue.playing = !queue.playing;
             queue.connection.dispatcher.pause(true);
-            queue.textChannel.send(`${user} ⏸ ***➽***  **หยุดเพลงเรียบร้อย**`).catch(console.error);
+            queue.textChannel.send(`${user} ⏸ Paused the music.`);
           } else {
             queue.playing = !queue.playing;
             queue.connection.dispatcher.resume();
-            queue.textChannel.send(`${user} ▶ ***➽***  **เล่นเพลงต่อเรียบร้อย**`).catch(console.error);
+            queue.textChannel.send(`${user} ▶ Resumed the music!`);
           }
           break;
 
@@ -107,14 +124,14 @@ module.exports = {
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
           queue.loop = !queue.loop;
-          queue.textChannel.send(`🔁 เล่นเพลงซ้ำ ***➽***  ${queue.loop ? "**เปิด**" : "**ปิด**"}`).catch(console.error);
+          queue.textChannel.send(`🔁 Loop is now ${queue.loop ? "**on**" : "**off**"}`);
           break;
 
         case "⏹":
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
           queue.songs = [];
-          queue.textChannel.send(`${user} ⏹ ***➽***  **ปิดเพลงเรียบร้อย**`).catch(console.error);
+          queue.textChannel.send(`${user} ⏹ Stopped the music!`);
           try {
             queue.connection.dispatcher.end();
           } catch (error) {
@@ -137,4 +154,4 @@ module.exports = {
       }
     });
   }
-}
+};

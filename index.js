@@ -1,6 +1,3 @@
-﻿/**
- * Module Imports
- */
 const { Client, Collection } = require("discord.js");
 const { readdirSync } = require("fs");
 const { join } = require("path");
@@ -14,20 +11,16 @@ client.prefix = PREFIX;
 client.queue = new Map();
 const cooldowns = new Collection();
 
-/**
- * Client Events
- */
 client.on("ready", () => {
   console.log(`${client.user.username} ready!`);
-  client.user.setActivity(`Using Command! ${PREFIX}help | ${PREFIX}play`, {
-    type: 'STREAMING',
+  client.user.setActivity(`📑 Using Command! ${PREFIX}help | ${PREFIX}play`, {
+    type: 'WATCHING',
     url: 'https://www.twitch.tv/adivise'
   });
 });
+client.on("warn", (info) => console.log(info));
+client.on("error", console.error);
 
-/**
- * Import all commands
- */
 const commandFiles = readdirSync(join(__dirname, "commands")).filter((file) => file.endsWith(".js"));
 for (const file of commandFiles) {
   const command = require(join(__dirname, "commands", `${file}`));
@@ -62,7 +55,7 @@ client.on("message", async (message) => {
       if (now < expirationTime) {
         const timeLeft = (expirationTime - now) / 1000;
         return message.reply(
-          `🚦 **โปรดรอ** ${timeLeft.toFixed(1)} **วินาที** 🕐 **เพื่อใช้คำสั่ง** \`${command.name}\` **ต่อไป**`
+          `please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`
         );
       }
     }
@@ -74,7 +67,7 @@ client.on("message", async (message) => {
       command.execute(message, args);
     } catch (error) {
       console.error(error);
-      message.reply("📛 ***➽***  **คำสั่งนี้ไม่พร้อมใช้งาน**").catch(console.error);
+      message.reply("There was an error executing that command.").catch(console.error);
     }
   }
 });

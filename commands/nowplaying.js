@@ -1,19 +1,19 @@
-﻿const { MessageEmbed } = require("discord.js");
+const { MessageEmbed } = require("discord.js");
 
 module.exports = {
   name: "np",
-  description: "🛎 ดูเพลงที่กำลังเล่นอยู่",
+  description: "Show now playing song",
   execute(message) {
     const queue = message.client.queue.get(message.guild.id);
-    if (!queue) return message.reply("🚫 ***➽***  **ไม่มีเพลงเล่นอยู่ตอนนี้**").catch(console.error);
+    if (!queue) return message.reply("There is nothing playing.").catch(console.error);
     const song = queue.songs[0];
 
     let nowPlaying = new MessageEmbed()
-      .setTitle("🔔 กำลังเล่นเพลง")
+
+      .setAuthor("🎵 Now playing...")
       .setDescription(`${song.title}\n${song.url}`)
       .setColor("RANDOM")
-      .setAuthor("Adivise")
-      .setFooter("2020 ©️ Developer Adivise.", "https://i.imgur.com/0nTWDMk.png")
+      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
       .setTimestamp();
 
     if (song.duration > 0) nowPlaying.setFooter(new Date(song.duration * 1000).toISOString().substr(11, 8));
