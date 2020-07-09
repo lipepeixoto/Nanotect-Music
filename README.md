@@ -68,4 +68,4 @@ Copy or Rename `config.json.example` to `config.json` and fill out the values:
 
 ## Credits
 
-[@Adivise](https://github.com/Adivise) For the queue system used in this application which was adapted from [@Adivise/Adivise-Music](https://github.com/Adivise/Adivise-Music)
+[@eritislami](https://github.com/eritislami) For the queue system used in this application which was adapted from [@eritislami/evobot](https://github.com/eritislami/evobot)
