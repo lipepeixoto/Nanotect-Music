@@ -1,7 +1,7 @@
 const ytdlDiscord = require("ytdl-core-discord");
 const scdl = require("soundcloud-downloader");
-const { canModifyQueue } = require("../util/MusicUtil");
 const { MessageEmbed } = require("discord.js");
+const { canModifyQueue } = require("../util/updatevoice");
 
 module.exports = {
   async play(song, message) {
@@ -11,27 +11,22 @@ module.exports = {
     if (!song) {
       queue.channel.leave();
       message.client.queue.delete(message.guild.id);
-
-      let stoppedEmbed = new MessageEmbed()
-    
-      .setAuthor("🚨 Music has ending...")
-      .setDescription(`**❯ Requested By:** ${message.author}`)
-      .setColor("RANDOM")
-      .setFooter("Creator: Nanotect.", "https://i.imgur.com/40JSoww.png")
-      .setTimestamp();
-
-      return queue.textChannel.send(stoppedEmbed);
+      return queue.textChannel.send(`${message.author} | 🚫 Music has ended.`).catch(console.error);
     }
 
     let stream = null;
+    let streamType = song.url.includes("youtube.com") ? "opus" : "ogg/opus";
 
     try {
       if (song.url.includes("youtube.com")) {
         stream = await ytdlDiscord(song.url, { highWaterMark: 1 << 25 });
-      } else if (song.url.includes("soundcloud.com") && SOUNDCLOUD_CLIENT_ID) {
-        const info = await scdl.getInfo(song.url, SOUNDCLOUD_CLIENT_ID);
-        const opus = scdl.filterMedia(info.media.transcodings, { format: scdl.FORMATS.OPUS });
-        stream = await scdl.downloadFromURL(opus[0].url, SOUNDCLOUD_CLIENT_ID);
+      } else if (song.url.includes("soundcloud.com")) {
+        try {
+          stream = await scdl.downloadFormat(song.url, scdl.FORMATS.OPUS, SOUNDCLOUD_CLIENT_ID ? SOUNDCLOUD_CLIENT_ID : undefined);
+        } catch (error) {
+          stream = await scdl.downloadFormat(song.url, scdl.FORMATS.MP3, SOUNDCLOUD_CLIENT_ID ? SOUNDCLOUD_CLIENT_ID : undefined);
+          streamType = "unknown";
+        }
       }
     } catch (error) {
       if (queue) {
@@ -45,13 +40,14 @@ module.exports = {
 
     queue.connection.on("disconnect", () => message.client.queue.delete(message.guild.id));
 
-    const type = song.url.includes("youtube.com") ? "opus" : "ogg/opus";
     const dispatcher = queue.connection
-      .play(stream, { type: type })
+      .play(stream, { type: streamType })
       .on("finish", () => {
         if (collector && !collector.ended) collector.stop();
 
         if (queue.loop) {
+          // if loop is on, push the song back at the end of the queue
+          // so it can repeat endlessly
           let lastSong = queue.songs.shift();
           queue.songs.push(lastSong);
           module.exports.play(queue.songs[0], message);
@@ -68,17 +64,20 @@ module.exports = {
       });
     dispatcher.setVolumeLogarithmic(queue.volume / 100);
 
-    let playEmbed = new MessageEmbed()
+    const videoId = getVideoIdFromUrl(song.url);
+    const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
-    .setAuthor("🎵 Start playing...")
-    .setTitle(`${song.title}`)
-    .setURL(song.url)
-    .setColor("RANDOM")
+    const playedEmbed = new MessageEmbed()
+    .setAuthor("Started playing...", "https://cdn.discordapp.com/emojis/741605543046807626.gif?v=1")
+    .setDescription(`**[${song.title}](${song.url})**`)
+    .setThumbnail(thumbnailUrl)
+    .addField(`Current Duration: \`[00:00:00 / ${(song.duration == 0 ? " ◉ LIVE" : new Date(song.duration * 1000).toISOString().substr(11, 8))}]\``, `\`\`\`🔴 | 🎶──────────────────────────────\`\`\``)
+    .setColor("#C00000")
     .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
-    .setTimestamp();
+    .setTimestamp();  
 
     try {
-      var playingMessage = await queue.textChannel.send(playEmbed);
+      var playingMessage = await queue.textChannel.send(playedEmbed);
       await playingMessage.react("⏭");
       await playingMessage.react("⏯");
       await playingMessage.react("🔁");
@@ -101,22 +100,34 @@ module.exports = {
           queue.playing = true;
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
+
+          const skipped = new MessageEmbed()
+          .setDescription(`\`\`\`⏭ | Song is now: **Skipped**\`\`\``)
+          
           queue.connection.dispatcher.end();
-          queue.textChannel.send(`${user} ⏩ Skipped the song`);
+          queue.textChannel.send(skipped).catch(console.error);
           collector.stop();
           break;
 
         case "⏯":
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
+
+          const paused = new MessageEmbed()
+          .setDescription(`\`\`\`⏯ | Song is now: **Paused**\`\`\``)
+
           if (queue.playing) {
             queue.playing = !queue.playing;
             queue.connection.dispatcher.pause(true);
-            queue.textChannel.send(`${user} ⏸ Paused the music.`);
+            queue.textChannel.send(paused).catch(console.error);
           } else {
+
+            const resumed = new MessageEmbed()
+            .setDescription(`\`\`\`⏯ | Song is now: **Resumed**\`\`\``)
+
             queue.playing = !queue.playing;
             queue.connection.dispatcher.resume();
-            queue.textChannel.send(`${user} ▶ Resumed the music!`);
+            queue.textChannel.send(resumed).catch(console.error);
           }
           break;
 
@@ -124,14 +135,22 @@ module.exports = {
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
           queue.loop = !queue.loop;
-          queue.textChannel.send(`🔁 Loop is now ${queue.loop ? "**on**" : "**off**"}`);
+
+          const looped = new MessageEmbed()
+          .setDescription(`\`\`\`🔁 | Song is now: ${queue.loop ? "**Looped**" : "**Unlooped**"}\`\`\``)
+
+          queue.textChannel.send(looped).catch(console.error);
           break;
 
         case "⏹":
           reaction.users.remove(user).catch(console.error);
           if (!canModifyQueue(member)) return;
+
+          const stopped = new MessageEmbed()
+          .setDescription(`\`\`\`⏹ | Song is now: **Stopped**\`\`\``)
+
           queue.songs = [];
-          queue.textChannel.send(`${user} ⏹ Stopped the music!`);
+          queue.textChannel.send(stopped).catch(console.error);
           try {
             queue.connection.dispatcher.end();
           } catch (error) {
@@ -155,3 +174,10 @@ module.exports = {
     });
   }
 };
+
+function getVideoIdFromUrl(url) {
+  const VIDEO_PARAM = 'v=';
+  const videoIdStartIndex = url.indexOf(VIDEO_PARAM) + VIDEO_PARAM.length;
+  const videoId = url.slice(videoIdStartIndex);
+  return videoId;
+}

@@ -1,4 +1,4 @@
-const { canModifyQueue } = require("../util/MusicUtil");
+const { canModifyQueue } = require("../util/updatevoice");
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
@@ -6,24 +6,36 @@ module.exports = {
   aliases: ["st"],
   description: "Skip to the selected queue number",
   execute(message, args) {
-    if (!args.length) return message.reply(`Usage: ${message.client.prefix}${module.exports.name} <Queue Number>`);
+    if (!args.length)
+      return message
+        .reply(`Usage: ${message.client.prefix}${module.exports.name} <Queue Number>`)
+        .catch(console.error);
+
+    if (isNaN(args[0]))
+      return message
+        .reply(`Usage: ${message.client.prefix}${module.exports.name} <Queue Number>`)
+        .catch(console.error);
 
     const queue = message.client.queue.get(message.guild.id);
     if (!queue) return message.channel.send("There is no queue.").catch(console.error);
     if (!canModifyQueue(message.member)) return;
 
+    if (args[0] > queue.songs.length)
+      return message.reply(`The queue is only ${queue.songs.length} songs long!`).catch(console.error);
+
     queue.playing = true;
-    queue.songs = queue.songs.slice(args[0] - 2);
+    if (queue.loop) {
+      for (let i = 0; i < args[0] - 2; i++) {
+        queue.songs.push(queue.songs.shift());
+      }
+    } else {
+      queue.songs = queue.songs.slice(args[0] - 2);
+    }
+
+    const skipto = new MessageEmbed()
+    .setDescription(`\`\`\`⏭ | Skipped to: **${args[0] - 1} songs**\`\`\``)
+
     queue.connection.dispatcher.end();
-
-    let skiptoEmbed = new MessageEmbed()
-
-      .setAuthor("⏭ Skipto music...")
-      .setDescription(`**❯ Skipped:** ${args[0] - 1} songs`)
-      .setColor("RANDOM")
-      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp();
-
-    queue.textChannel.send(skiptoEmbed);
+    queue.textChannel.send(skipto).catch(console.error);
   }
 };

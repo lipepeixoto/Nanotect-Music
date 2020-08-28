@@ -1,13 +1,13 @@
 {
-  "name": "evobot",
-  "version": "0.5.0",
+  "name": "nanotectmusic",
+  "version": "1.9.0",
   "description": "Discord music bot built with discord.js",
   "main": "index.js",
-  "author": "Erit Islami <eritislami@gmail.com>",
+  "author": "Nanotect",
   "private": true,
-  "homepage": "https://github.com/eritislami/evobot",
-  "repository": "github:eritislami/evobot",
-  "bugs": "https://github.com/eritislami/evobot/issues",
+  "homepage": "https://github.com/Adivise/Nanotect-Music",
+  "repository": "github:Adivise/Nanotect-Music",
+  "bugs": "https://github.com/Adivise/Nanotect-Music/issues",
   "engines": {
     "node": ">=12.0.0"
   },
@@ -17,9 +17,10 @@
     "ffmpeg-static": "^4.2.3",
     "lyrics-finder": "^21.0.5",
     "simple-youtube-api": "^5.1.1",
-    "soundcloud-downloader": "0.0.9",
+    "soundcloud-downloader": "^0.1.2",
+    "string-progressbar": "^1.0.1",
     "ytdl-core": "^3.1.0",
-    "ytdl-core-discord": "amishshah/ytdl-core-discord"
+    "ytdl-core-discord": "^1.2.1"
   },
   "scripts": {
     "start": "node index.js"

@@ -1,4 +1,4 @@
-const { canModifyQueue } = require("../util/MusicUtil");
+const { canModifyQueue } = require("../util/updatevoice");
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
@@ -10,20 +10,15 @@ module.exports = {
     if (!queue) return message.reply("There is nothing playing.").catch(console.error);
     if (!canModifyQueue(message.member)) return;
 
+    const resumed = new MessageEmbed()
+    .setDescription(`\`\`\`⏯ | Song is now: **Resumed**\`\`\``)
+
     if (!queue.playing) {
       queue.playing = true;
       queue.connection.dispatcher.resume();
-      return queue.textChannel.send(`${message.author} ▶ resumed the music!`).catch(console.error);
+      return queue.textChannel.send(resumed).catch(console.error);
     }
 
-    let resumeEmbed = new MessageEmbed()
-
-    .setAuthor("⏯ Resume music...")
-    .setDescription(`**❯ Requested By:** ${message.author}`)
-    .setColor("RANDOM")
-    .setFooter("Creator: Nanotect.", "https://i.imgur.com/40JSoww.png")
-    .setTimestamp();
-
-    return message.reply(resumeEmbed);
+    return message.reply("The queue is not paused.").catch(console.error);
   }
 };

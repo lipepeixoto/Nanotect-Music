@@ -1,4 +1,4 @@
-const { canModifyQueue } = require("../util/MusicUtil");
+const { canModifyQueue } = require("../util/updatevoice");
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
@@ -11,17 +11,11 @@ module.exports = {
       return message.reply("There is nothing playing that I could skip for you.").catch(console.error);
     if (!canModifyQueue(message.member)) return;
 
+    const skipped = new MessageEmbed()
+    .setDescription(`\`\`\`⏭ | Song is now: **Skipped**\`\`\``)
+
     queue.playing = true;
     queue.connection.dispatcher.end();
-
-    let skipEmbed = new MessageEmbed()
-
-    .setAuthor("⏭ Skipped music...")
-    .setDescription(`**❯ Requested By:** ${message.author}`)
-    .setColor("RANDOM")
-    .setFooter("Creator: Nanotect.", "https://i.imgur.com/40JSoww.png")
-    .setTimestamp();
-
-    queue.textChannel.send(skipEmbed);
+    queue.textChannel.send(skipped).catch(console.error);
   }
 };

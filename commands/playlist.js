@@ -78,19 +78,17 @@ module.exports = {
         serverQueue.songs.push(song);
         if (!PRUNING)
           message.channel
-            .send(`✅ **${song.title}** has been added to the queue by ${message.author}`);
-      } else {
+            .send(`✅ **${song.title}** has been added to the queue by ${message.author}`)
+            .catch(console.error);
+      } else {  
         queueConstruct.songs.push(song);
       }
     });
 
     let playlistEmbed = new MessageEmbed()
-
-      .setAuthor("🎶 Start playing...")
       .setTitle(`${playlist.title}`)
       .setURL(playlist.url)
-      .setColor("RANDOM")
-      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
+      .setColor("#000001")
       .setTimestamp();
 
     if (!PRUNING) {
@@ -100,7 +98,7 @@ module.exports = {
           playlistEmbed.description.substr(0, 2007) + "\nPlaylist larger than character limit...";
     }
 
-    message.channel.send(playlistEmbed);
+    message.channel.send(`${message.author} Started a playlist`, playlistEmbed);
 
     if (!serverQueue) message.client.queue.set(message.guild.id, queueConstruct);
 

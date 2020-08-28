@@ -1,4 +1,4 @@
-const { canModifyQueue } = require("../util/MusicUtil");
+const { canModifyQueue } = require("../util/updatevoice");
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
@@ -12,7 +12,10 @@ module.exports = {
     if (!canModifyQueue(message.member))
       return message.reply("You need to join a voice channel first!").catch(console.error);
 
-    if (!args[0]) return message.reply(`🔊 The current volume is: **${queue.volume}%**`).catch(console.error);
+      const currentvolume = new MessageEmbed()
+      .setDescription(`\`\`\`🔊 | The current volume is: **${queue.volume}%**\`\`\``)
+
+    if (!args[0]) return message.reply(currentvolume).catch(console.error);
     if (isNaN(args[0])) return message.reply("Please use a number to set volume.").catch(console.error);
     if (parseInt(args[0]) > 100 || parseInt(args[0]) < 0)
       return message.reply("Please use a number between 0 - 100.").catch(console.error);
@@ -20,14 +23,9 @@ module.exports = {
     queue.volume = args[0];
     queue.connection.dispatcher.setVolumeLogarithmic(args[0] / 100);
 
-    let volumeEmbed = new MessageEmbed()
+    const setvolume = new MessageEmbed()
+    .setDescription(`\`\`\`🔊 | Volume set to: **${args[0]}%**\`\`\``)
 
-      .setAuthor("🔊 Change volume...")
-      .setDescription(`❯ Volume set to: **${args[0]}%**`)
-      .setColor("RANDOM")
-      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp();
-
-    return queue.textChannel.send(volumeEmbed);
+    return queue.textChannel.send(setvolume).catch(console.error);
   }
 };

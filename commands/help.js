@@ -8,12 +8,10 @@ module.exports = {
     let commands = message.client.commands.array();
 
     let helpEmbed = new MessageEmbed()
-
-      .setTitle("🎶 Music Help...")
+      .setAuthor("📝 Help Command!")
       .setDescription("List of all commands")
-      .setColor("RANDOM")
-      .setFooter("Creator: Nanotect.", "https://i.imgur.com/40JSoww.png")
-      .setTimestamp();
+      .setColor("#000001")
+      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
 
     commands.forEach((cmd) => {
       helpEmbed.addField(
@@ -25,6 +23,6 @@ module.exports = {
 
     helpEmbed.setTimestamp();
 
-    return message.channel.send(helpEmbed);
+    return message.channel.send(helpEmbed).catch(console.error);
   }
 };

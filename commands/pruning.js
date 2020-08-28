@@ -14,15 +14,12 @@ module.exports = {
         return message.channel.send("There was an error writing to the file.").catch(console.error);
       }
 
-      let pruneEmbed = new MessageEmbed()
+      const prunning = new MessageEmbed()
+      .setDescription(`\`\`\`\🚮 | Message prunning is: ${config.PRUNING ? "**Enabled**" : "**Disabled**"}\`\`\``)
 
-      .setAuthor("💬 Pruning massage...")
-      .setDescription(`**❯ Message pruning is:** ${config.PRUNING ? "✅" : "❎"}`)
-      .setColor("RANDOM")
-      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp();
-
-      return message.channel.send(pruneEmbed);
+      return message.channel
+        .send(prunning)
+        .catch(console.error);
     });
   }
 };

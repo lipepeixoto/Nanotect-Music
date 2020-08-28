@@ -1,4 +1,4 @@
-const { canModifyQueue } = require("../util/MusicUtil");
+const { canModifyQueue } = require("../util/updatevoice");
 const { MessageEmbed } = require("discord.js");
 
 module.exports = {
@@ -14,14 +14,9 @@ module.exports = {
 
     const song = queue.songs.splice(args[0] - 1, 1);
 
-    let removeEmbed = new MessageEmbed()
+    const removed = new MessageEmbed()
+    .setDescription(`\`\`\`❌ | Song has removed: **${song[0].title}** from the queue.\`\`\``)
 
-      .setAuthor("🎵 Removed music...")
-      .setDescription(`${song[0].title}`)
-      .setColor("RANDOM")
-      .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp();
-
-    queue.textChannel.send(removeEmbed);
+    queue.textChannel.send(removed);
   }
 };

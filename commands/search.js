@@ -15,18 +15,18 @@ module.exports = {
       return message.reply("You need to join a voice channel first!").catch(console.error);
 
     const search = args.join(" ");
+    const serverIcon = message.guild.iconURL();
 
     let resultsEmbed = new MessageEmbed()
-
-      .setAuthor("#️⃣ Select music...")
-      .setDescription(`**❯ Results for:** ${search}`)
-      .setColor("RANDOM")
+      .setAuthor(`Searching for: ${search}`, serverIcon)
+      .setThumbnail(serverIcon)
+      .setColor("#000001")
       .setFooter(`Requested By ${message.author.username}`, message.author.displayAvatarURL({ dynamic: true }))
-      .setTimestamp();
+      .setTimestamp();  
 
     try {
       const results = await youtube.searchVideos(search, 10);
-      results.map((video, index) => resultsEmbed.addField(video.shortURL, `${index + 1}. ${video.title}`));
+      results.map((video, index) => resultsEmbed.addField("\u200b", `${index + 1}. ${video.title}`));
 
       var resultsMessage = await message.channel.send(resultsEmbed);
 
